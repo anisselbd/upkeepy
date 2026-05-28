@@ -131,6 +131,27 @@ final class AppState: ObservableObject {
         await checkAll()
     }
 
+    func uninstall(_ package: UpdatePackage) async {
+        guard !isBusy else { return }
+        lastResult = nil
+        status = .updating
+        progress = nil
+        liveOutput = ""
+        busyMessage = "Désinstallation de \(package.name)…"
+        let start = Date()
+        let result = await MaintenanceEngine.uninstall(package, onOutput: liveSink())
+        busyMessage = nil
+        liveOutput = ""
+        lastResult = OperationResult(
+            success: result.ok,
+            title: result.ok ? "\(package.name) désinstallé" : "Échec : \(package.name)",
+            detail: result.combined.isEmpty
+                ? (result.ok ? "Paquet retiré." : "Erreur inconnue")
+                : result.combined,
+            duration: Date().timeIntervalSince(start))
+        await checkAll()
+    }
+
     func reinstall(_ ghost: GhostCask) async {
         guard !isBusy else { return }
         lastResult = nil

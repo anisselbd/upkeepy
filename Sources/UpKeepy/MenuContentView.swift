@@ -3,6 +3,7 @@ import SwiftUI
 struct MenuContentView: View {
     @EnvironmentObject var state: AppState
     @State private var showResultDetail = false
+    @State private var packageToUninstall: UpdatePackage?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -42,6 +43,23 @@ struct MenuContentView: View {
         .overlay { if state.isBusy { busyOverlay } }
         .task {
             if state.lastCheck == nil { await state.checkAll() }
+        }
+        .confirmationDialog(
+            packageToUninstall.map { "Désinstaller \($0.name) ?" } ?? "",
+            isPresented: Binding(
+                get: { packageToUninstall != nil },
+                set: { if !$0 { packageToUninstall = nil } }
+            ),
+            presenting: packageToUninstall
+        ) { pkg in
+            Button("Désinstaller", role: .destructive) {
+                let target = pkg
+                packageToUninstall = nil
+                Task { await state.uninstall(target) }
+            }
+            Button("Annuler", role: .cancel) { packageToUninstall = nil }
+        } message: { pkg in
+            Text("Cette action est irréversible. \(pkg.name) sera retiré via \(pkg.manager.displayName).")
         }
     }
 
@@ -183,6 +201,16 @@ struct MenuContentView: View {
                         }
                         .buttonStyle(.borderless)
                         .help("Mettre à jour \(pkg.name)")
+                        .disabled(state.isBusy)
+
+                        Button {
+                            packageToUninstall = pkg
+                        } label: {
+                            Image(systemName: "trash")
+                        }
+                        .buttonStyle(.borderless)
+                        .help("Désinstaller \(pkg.name)")
+                        .foregroundStyle(.secondary)
                         .disabled(state.isBusy)
                     }
                 }

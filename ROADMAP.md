@@ -11,10 +11,9 @@ Toggle dans les préférences qui forge une fausse liste de paquets en attente,
 indépendamment de l'état réel de la machine. Utile pour présenter le produit
 (captures, screencasts, démos clients) sans dépendre de l'instant T.
 
-### 🥈 Désinstall par paquet
-Bouton « 🗑️ » à côté du ⬇️ sur chaque ligne pour retirer proprement un paquet
-qu'on n'utilise plus (cas n8n — désinstallé manuellement faute de bouton).
-Idem pour les paquets npm « MISSING » (état cassé).
+### ✅ Désinstall par paquet *(livré)*
+Bouton 🗑️ à côté du ⬇️ sur chaque ligne, avec dialogue de confirmation
+destructif. Couvre brew (formules + casks), npm global et gems.
 
 ### 🥉 Vérification périodique en arrière-plan
 `Timer` toutes les N heures (configurable) + notification système (User

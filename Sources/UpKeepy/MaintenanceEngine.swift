@@ -188,6 +188,37 @@ enum MaintenanceEngine {
         }
     }
 
+    /// Désinstalle complètement un paquet (action destructive — l'UI doit
+    /// demander confirmation avant d'appeler cette méthode).
+    static func uninstall(_ package: UpdatePackage,
+                          onOutput: ((String) -> Void)? = nil) async -> ShellResult {
+        switch package.manager {
+        case .homebrew:
+            return await Shell.run("\(brewPath) uninstall '\(package.name)'",
+                                   onOutput: onOutput)
+        case .homebrewCask:
+            return await Shell.run("\(brewPath) uninstall --cask '\(package.name)'",
+                                   onOutput: onOutput)
+        case .npm:
+            guard let npm = Shell.which("npm") else {
+                return ShellResult(stdout: "", stderr: "npm introuvable", exitCode: -1)
+            }
+            return await Shell.run("\(npm) uninstall -g '\(package.name)'",
+                                   onOutput: onOutput)
+        case .gem:
+            guard let gem = Shell.which("gem") else {
+                return ShellResult(stdout: "", stderr: "gem introuvable", exitCode: -1)
+            }
+            // `--force` car gem demande sinon confirmation interactive.
+            return await Shell.run("\(gem) uninstall '\(package.name)' --force",
+                                   onOutput: onOutput)
+        case .system:
+            return ShellResult(stdout: "",
+                               stderr: "Non applicable aux mises à jour macOS.",
+                               exitCode: -1)
+        }
+    }
+
     /// Nettoie les anciennes versions Homebrew (lancé en fin de « Tout mettre à jour »).
     static func cleanup() async -> ShellResult {
         guard isHomebrewInstalled else { return ShellResult(stdout: "", stderr: "", exitCode: 0) }

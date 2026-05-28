@@ -27,6 +27,8 @@ graphique, en un clic, et avec une fonctionnalité que `brew` ne sait pas faire 
 - **Un paquet** : bouton ⬇️ sur la ligne → spinner + sortie live + récap.
 - **Tout** : bouton « Tout mettre à jour » → barre de progression `X/N` qui
   avance paquet par paquet, avec le nom courant et sa sortie en direct.
+- **Désinstall ciblée** : bouton 🗑️ avec dialogue de confirmation (couvre
+  brew, npm global, gems).
 - **Récap de fin** systématique : ✅/❌ + durée mesurée + détail dépliable
   (sélectionnable, pour copier-coller un log).
 
