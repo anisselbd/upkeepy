@@ -274,6 +274,24 @@ struct MenuContentView: View {
 
             Spacer()
 
+            Menu {
+                Picker("Vérification automatique", selection: $state.checkIntervalMinutes) {
+                    Text("Toutes les 30 minutes").tag(30)
+                    Text("Toutes les heures").tag(60)
+                    Text("Toutes les 6 heures").tag(360)
+                    Text("Toutes les 24 heures").tag(1440)
+                    Divider()
+                    Text("Désactivée").tag(0)
+                }
+            } label: {
+                Image(systemName: state.checkIntervalMinutes == 0
+                      ? "clock.badge.xmark"
+                      : "clock.arrow.circlepath")
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help(scheduleHelp)
+
             Button {
                 NSApplication.shared.terminate(nil)
             } label: {
@@ -282,6 +300,17 @@ struct MenuContentView: View {
             .help("Quitter UpKeepy")
         }
         .padding(12)
+    }
+
+    private var scheduleHelp: String {
+        switch state.checkIntervalMinutes {
+        case 0:    return "Vérification automatique désactivée"
+        case 30:   return "Vérification toutes les 30 minutes"
+        case 60:   return "Vérification toutes les heures"
+        case 360:  return "Vérification toutes les 6 heures"
+        case 1440: return "Vérification toutes les 24 heures"
+        default:   return "Vérification programmée"
+        }
     }
 
     private var busyOverlay: some View {

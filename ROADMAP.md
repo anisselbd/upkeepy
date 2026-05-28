@@ -15,10 +15,12 @@ indépendamment de l'état réel de la machine. Utile pour présenter le produit
 Bouton 🗑️ à côté du ⬇️ sur chaque ligne, avec dialogue de confirmation
 destructif. Couvre brew (formules + casks), npm global et gems.
 
-### 🥉 Vérification périodique en arrière-plan
-`Timer` toutes les N heures (configurable) + notification système (User
-Notifications) quand de nouvelles MAJ apparaissent. L'icône de la barre de
-menu reflète déjà l'état — la notif vient juste pousser l'info.
+### ✅ Vérification périodique en arrière-plan *(livré)*
+Scheduler interne (Swift `Task` + `Task.sleep`) qui re-vérifie tous les N
+minutes (30 / 60 / 360 / 1440 / désactivé, persistant via `UserDefaults`).
+Notification système (`UserNotifications`) envoyée uniquement quand de
+nouvelles MAJ apparaissent entre deux ticks. Réglage via menu ⏰ dans le
+pied de page.
 
 ### Bouton « Tout mettre à jour ce groupe »
 Sur l'en-tête de chaque gestionnaire (Homebrew, npm, gem…), un bouton qui

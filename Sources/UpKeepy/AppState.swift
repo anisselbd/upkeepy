@@ -23,9 +23,58 @@ final class AppState: ObservableObject {
             .last(where: { !$0.isEmpty })
     }
 
+    /// Intervalle (en minutes) entre deux vérifications automatiques.
+    /// `0` désactive la vérif périodique. Persisté dans `UserDefaults`.
+    @Published var checkIntervalMinutes: Int {
+        didSet {
+            UserDefaults.standard.set(checkIntervalMinutes, forKey: Self.intervalKey)
+            startScheduler()
+        }
+    }
+
+    private static let intervalKey = "checkIntervalMinutes"
+    private var schedulerTask: Task<Void, Never>?
+
     init() {
-        // Vérification au lancement pour refléter l'état dans la barre de menu.
-        Task { await checkAll() }
+        // Valeur par défaut : vérif toutes les 6 heures.
+        UserDefaults.standard.register(defaults: [Self.intervalKey: 360])
+        self.checkIntervalMinutes = UserDefaults.standard.integer(forKey: Self.intervalKey)
+
+        Task { @MainActor in
+            await Notifications.requestPermissionIfNeeded()
+            await checkAll()
+            startScheduler()
+        }
+    }
+
+    /// Relance la boucle de vérification périodique selon l'intervalle courant.
+    func startScheduler() {
+        schedulerTask?.cancel()
+        guard checkIntervalMinutes > 0 else { return }
+        schedulerTask = Task { [weak self] in
+            while !Task.isCancelled {
+                let minutes = await MainActor.run { self?.checkIntervalMinutes ?? 0 }
+                guard minutes > 0 else { return }
+                try? await Task.sleep(for: .seconds(minutes * 60))
+                if Task.isCancelled { return }
+                await self?.scheduledCheck()
+            }
+        }
+    }
+
+    /// Check automatique : silencieux mais envoie une notif si de NOUVELLES
+    /// mises à jour apparaissent (pas à chaque tour quand rien ne change).
+    private func scheduledCheck() async {
+        guard !isBusy else { return }
+        let before = totalUpdates
+        await checkAll()
+        let delta = totalUpdates - before
+        if delta > 0 {
+            let s = delta > 1 ? "s" : ""
+            Notifications.send(
+                title: "UpKeepy",
+                body: "\(delta) nouvelle\(s) mise\(s) à jour disponible\(s)")
+        }
     }
 
     var totalUpdates: Int { packages.count + systemUpdates.count }

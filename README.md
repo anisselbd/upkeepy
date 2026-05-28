@@ -21,6 +21,9 @@ graphique, en un clic, et avec une fonctionnalité que `brew` ne sait pas faire 
 - **Diagnostic intelligent** — quand une MAJ échoue, la bannière affiche la
   cause probable et la commande à lancer (ex. `distutils` manquant en Python
   3.13 → `npm install -g node-gyp@latest`).
+- **Vérification périodique en arrière-plan** (30 min / 1 h / 6 h / 24 h,
+  configurable via le menu ⏰ du pied de page) + **notification système**
+  quand de nouvelles MAJ apparaissent entre deux ticks.
 
 ## Granularité
 
