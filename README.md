@@ -1,83 +1,83 @@
 # UpKeepy
 
-Petite app **barre de menu** macOS qui garde ton Mac à jour, façon `topgrade`
-mais graphique, en un clic, avec une fonctionnalité que `brew` ne sait pas
-faire : **la détection des casks fantômes**.
+A small macOS **menu bar** app that keeps your Mac up to date, like `topgrade`
+but graphical and one click away, with a feature `brew` itself can't do:
+**ghost cask detection**.
 
-**[upkeepy.fr](https://upkeepy.fr)** · `macOS 14+` · `Swift / SwiftUI` · Code ouvert (MIT)
+**[upkeepy.fr](https://upkeepy.fr)** · `macOS 14+` · `Swift / SwiftUI` · Open source (MIT)
 
-![Le popover UpKeepy listant les mises à jour disponibles, regroupées par gestionnaire](docs/hero.png)
+![The UpKeepy popover listing available updates, grouped by manager](docs/hero.png)
 
-## Ce qu'elle fait
+## What it does
 
-- **Homebrew** : formules + applications (casks), avec `cleanup` automatique.
-- **npm** : paquets globaux périmés, installés à la **version exacte** (pas
-  `@latest`) avec **vérification post-install** qui démasque les faux succès où
-  npm sort en exit 0 alors que le module natif a échoué à compiler.
-- **RubyGems** : gems périmés (le **Ruby système macOS** est ignoré, ses gems
-  sont gérés par Apple et les toucher casserait des choses).
-- **macOS** : liste les mises à jour système et ouvre les Réglages Système.
-- **Casks fantômes** : détecte les apps que Homebrew croit installées mais qui
-  ont été supprimées à la main, et propose pour chacune de **réinstaller** ou de
-  **supprimer** la référence. C'est la fonctionnalité signature.
-- **Diagnostic intelligent** : quand une MAJ échoue, la bannière affiche la
-  cause probable et la commande à lancer (ex. `distutils` manquant en Python
-  3.13 → `npm install -g node-gyp@latest`).
-- **Vérification périodique en arrière-plan** (30 min / 1 h / 6 h / 24 h,
-  réglable via le menu ⏰ du pied de page) + **notification système** quand de
-  nouvelles MAJ apparaissent entre deux contrôles.
+- **Homebrew**: formulae + apps (casks), with automatic `cleanup`.
+- **npm**: outdated global packages, installed at the **exact version** (not
+  `@latest`) with a **post-install check** that exposes the fake successes where
+  npm exits 0 even though the native module failed to compile.
+- **RubyGems**: outdated gems (the **macOS system Ruby** is skipped, since its
+  gems are managed by Apple and touching them would break things).
+- **macOS**: lists system updates and opens System Settings.
+- **Ghost casks**: detects apps that Homebrew thinks are installed but were
+  removed by hand, and offers, for each one, to **reinstall** or **remove** the
+  reference. This is the signature feature.
+- **Smart diagnostics**: when an update fails, the banner shows the likely cause
+  and the command to run (e.g. missing `distutils` on Python 3.13 →
+  `npm install -g node-gyp@latest`).
+- **Periodic background checks** (30 min / 1 h / 6 h / 24 h, adjustable from the
+  ⏰ menu in the footer) + a **system notification** when new updates appear
+  between two checks.
 
-## Granularité
+## Granularity
 
-- **Un paquet** : bouton ⬇️ sur la ligne, spinner + sortie live + récap.
-- **Tout** : bouton « Tout mettre à jour », barre de progression `X/N` qui
-  avance paquet par paquet, avec le nom courant et sa sortie en direct.
-- **Désinstall ciblée** : bouton 🗑️ avec dialogue de confirmation (brew, npm
-  global, gems).
-- **Récap de fin** systématique : ✅/❌ + durée mesurée + détail dépliable et
-  sélectionnable (pour copier-coller un log).
+- **One package**: ⬇️ button on the row, spinner + live output + summary.
+- **Everything**: an "Update all" button with an `X/N` progress bar that moves
+  package by package, showing the current name and its live output.
+- **Targeted uninstall**: 🗑️ button with a confirmation dialog (brew, global
+  npm, gems).
+- **A summary at the end**, always: ✅/❌ + measured duration + an expandable,
+  selectable detail view (to copy-paste a log).
 
-![Le récapitulatif de fin d'opération : durée mesurée et journal dépliable](docs/recap.png)
+![The end-of-operation summary: measured duration and expandable log](docs/recap.png)
 
-L'icône de la barre de menu reflète l'état en direct :
+The menu bar icon reflects the live status:
 
-| Icône | État |
-|-------|------|
-| ✅ `checkmark.seal` | tout est à jour |
-| ⬇️ `arrow.down.circle` | mises à jour disponibles |
-| 🔄 `arrow.triangle.2.circlepath` | vérification / mise à jour en cours |
-| ⚠️ `exclamationmark.triangle` | erreur |
+| Icon | State |
+|------|-------|
+| ✅ `checkmark.seal` | everything is up to date |
+| ⬇️ `arrow.down.circle` | updates available |
+| 🔄 `arrow.triangle.2.circlepath` | checking / updating |
+| ⚠️ `exclamationmark.triangle` | error |
 
 ## Installation
 
-Pas besoin d'Xcode complet, uniquement les Command Line Tools.
+No full Xcode needed, just the Command Line Tools.
 
 ```bash
 git clone https://github.com/anisselbd/upkeepy.git
 cd upkeepy
-./build.sh        # compile + empaquette UpKeepy.app
-open UpKeepy.app  # lance l'app (icône dans la barre de menu)
+./build.sh        # compiles + bundles UpKeepy.app
+open UpKeepy.app  # launches the app (icon in the menu bar)
 ```
 
-Pour qu'elle se lance à chaque démarrage : Réglages Système → Général →
-Ouverture → ajouter `UpKeepy.app`.
+To launch it at every startup: System Settings → General → Login Items → add
+`UpKeepy.app`.
 
-> Une version packagée prête à l'emploi (signée Developer ID et notarisée)
-> arrivera. Une liste d'attente sera ouverte sur **upkeepy.fr**.
+> A ready-to-use packaged build (Developer ID signed and notarized) is coming.
+> A waitlist is open at **upkeepy.fr**.
 
 ## Architecture
 
-| Fichier | Rôle |
-|---------|------|
-| `Models.swift` | types de données (`UpdatePackage`, `GhostCask`, états) |
-| `Shell.swift` | exécution de commandes avec `PATH` enrichi (une app GUI n'hérite pas du PATH du shell) |
-| `MaintenanceEngine.swift` | logique métier : vérifications, parsing, mises à jour, détection fantômes |
-| `AppState.swift` | état observable (`@MainActor`) partagé par l'UI |
-| `MenuContentView.swift` | interface SwiftUI du popover |
-| `UpKeepyApp.swift` | point d'entrée `MenuBarExtra` |
-| `Tools/make-icon.swift` | génère l'icône d'app par code (Core Graphics) |
+| File | Role |
+|------|------|
+| `Models.swift` | data types (`UpdatePackage`, `GhostCask`, states) |
+| `Shell.swift` | command execution with an enriched `PATH` (a GUI app does not inherit the shell's PATH) |
+| `MaintenanceEngine.swift` | business logic: checks, parsing, updates, ghost detection |
+| `AppState.swift` | observable state (`@MainActor`) shared by the UI |
+| `MenuContentView.swift` | SwiftUI interface of the popover |
+| `UpKeepyApp.swift` | `MenuBarExtra` entry point |
+| `Tools/make-icon.swift` | generates the app icon in code (Core Graphics) |
 
-### Régénérer l'icône
+### Regenerate the icon
 
 ```bash
 swift Tools/make-icon.swift
@@ -85,15 +85,15 @@ iconutil -c icns AppIcon.iconset -o Resources/AppIcon.icns
 ./build.sh
 ```
 
-## Limites connues
+## Known limitations
 
-- Les MAJ macOS sont listées mais pas appliquées dans l'app (élévation `sudo`
-  non gérée) : UpKeepy ouvre les Réglages Système pour les terminer.
-- Pas de lancement automatique au démarrage intégré (à ajouter à la main pour
-  l'instant, voir ci-dessus).
+- macOS updates are listed but not applied inside the app (`sudo` elevation is
+  not handled): UpKeepy opens System Settings to finish them.
+- No built-in launch-at-startup yet (add it by hand for now, see above).
 
-La suite (mode démo, lancement auto, MAJ groupées) est dans [`ROADMAP.md`](ROADMAP.md).
+What's next (demo mode, launch at startup, grouped updates) lives in
+[`ROADMAP.md`](ROADMAP.md).
 
-## Licence
+## License
 
-[MIT](LICENSE). Fais-en ce que tu veux.
+[MIT](LICENSE). Do what you want with it.
