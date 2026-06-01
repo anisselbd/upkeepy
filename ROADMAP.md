@@ -4,7 +4,7 @@
 (formules + casks), npm global, macOS, avec récap intelligent post-opération
 et détection interactive des casks fantômes.
 
-## Idées V2 — par ordre d'impact perçu
+## Idées V2, par ordre d'impact perçu
 
 ### 🥇 Mode démo (état simulé)
 Toggle dans les préférences qui forge une fausse liste de paquets en attente,
@@ -38,7 +38,7 @@ On a déjà `distutils` + `EACCES`. À ajouter au fil de l'eau :
 
 ### Application directe des MAJ macOS
 Aujourd'hui on ouvre les Réglages Système (sudo). Lancer `softwareupdate -ia`
-nécessite une élévation propre — possibilités :
+nécessite une élévation propre. Possibilités :
 - `STPrivilegedTask` / `AuthorizationExecuteWithPrivileges` (déprécié).
 - Helper privilégié via SMJobBless (workflow Apple complexe).
 - Voie pragmatique : exposer un copier-coller de la commande sudo + lancer
@@ -71,7 +71,7 @@ pour préparer EN/FR/etc.
 
 ## Hors V2 (à débattre)
 
-- **Auto-update d'UpKeepy lui-même** (vérifier GitHub releases) — utile si
+- **Auto-update d'UpKeepy lui-même** (vérifier GitHub releases), utile si
   l'app est distribuée hors App Store.
 - **Notarisation Apple** pour distribution publique (Developer ID requis).
 - **Support des autres gestionnaires** : pip, cargo, rustup, asdf, mise…
