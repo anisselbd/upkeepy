@@ -140,7 +140,7 @@ enum MaintenanceEngine {
     }
 
     /// Mises à jour système macOS (`softwareupdate -l`). Lecture seule : on ne
-    /// les applique pas ici (sudo requis) — on ouvre les Réglages Système.
+    /// les applique pas ici (sudo requis), on ouvre les Réglages Système.
     static func checkSystem() async -> [String] {
         let result = await Shell.run("softwareupdate -l 2>&1")
         var items: [String] = []
@@ -168,7 +168,7 @@ enum MaintenanceEngine {
             return await Shell.run("\(brewPath) upgrade --cask '\(package.name)'", onOutput: onOutput)
         case .npm:
             guard let npm = Shell.which("npm") else {
-                return ShellResult(stdout: "", stderr: "npm introuvable", exitCode: -1)
+                return ShellResult(stdout: "", stderr: "npm not found", exitCode: -1)
             }
             // On vise la version exacte plutôt que `@latest` : c'est
             // déterministe et permet une vérification a posteriori.
@@ -178,17 +178,17 @@ enum MaintenanceEngine {
             return await decorateNpmResult(result, package: package, npm: npm)
         case .gem:
             guard let gem = Shell.which("gem") else {
-                return ShellResult(stdout: "", stderr: "gem introuvable", exitCode: -1)
+                return ShellResult(stdout: "", stderr: "gem not found", exitCode: -1)
             }
             return await Shell.run("\(gem) update '\(package.name)'", onOutput: onOutput)
         case .system:
-            // macOS : pas d'install ciblée ici (sudo) — on passe par les Réglages.
-            return ShellResult(stdout: "Mise à jour macOS via les Réglages Système.",
+            // macOS : pas d'install ciblée ici (sudo), on passe par les Réglages.
+            return ShellResult(stdout: "macOS updates are handled in System Settings.",
                                stderr: "", exitCode: 0)
         }
     }
 
-    /// Désinstalle complètement un paquet (action destructive — l'UI doit
+    /// Désinstalle complètement un paquet (action destructive : l'UI doit
     /// demander confirmation avant d'appeler cette méthode).
     static func uninstall(_ package: UpdatePackage,
                           onOutput: ((String) -> Void)? = nil) async -> ShellResult {
@@ -201,20 +201,20 @@ enum MaintenanceEngine {
                                    onOutput: onOutput)
         case .npm:
             guard let npm = Shell.which("npm") else {
-                return ShellResult(stdout: "", stderr: "npm introuvable", exitCode: -1)
+                return ShellResult(stdout: "", stderr: "npm not found", exitCode: -1)
             }
             return await Shell.run("\(npm) uninstall -g '\(package.name)'",
                                    onOutput: onOutput)
         case .gem:
             guard let gem = Shell.which("gem") else {
-                return ShellResult(stdout: "", stderr: "gem introuvable", exitCode: -1)
+                return ShellResult(stdout: "", stderr: "gem not found", exitCode: -1)
             }
             // `--force` car gem demande sinon confirmation interactive.
             return await Shell.run("\(gem) uninstall '\(package.name)' --force",
                                    onOutput: onOutput)
         case .system:
             return ShellResult(stdout: "",
-                               stderr: "Non applicable aux mises à jour macOS.",
+                               stderr: "Not applicable to macOS updates.",
                                exitCode: -1)
         }
     }
@@ -257,13 +257,13 @@ enum MaintenanceEngine {
         var hint: String?
         if combinedLog.contains("No module named 'distutils'") {
             hint = """
-            Cause : node-gyp ne trouve pas le module Python `distutils`
-            (supprimé en Python 3.12). Solution :
+            Cause: node-gyp can't find the Python `distutils` module
+            (removed in Python 3.12). Fix:
               npm install -g node-gyp@latest
-              # puis réessaie la mise à jour ici
+              # then retry the update here
             """
         } else if combinedLog.contains("EACCES") {
-            hint = "Cause : permission refusée. Vérifie que tu n'as pas besoin de `sudo`."
+            hint = "Cause: permission denied. Check whether you need `sudo`."
         }
 
         // Si tout va bien (exit 0 + version cible atteinte + pas de hint) → on
@@ -271,13 +271,13 @@ enum MaintenanceEngine {
         if result.ok && !versionMismatch && hint == nil { return result }
 
         var header = ""
-        header += "Paquet : \(package.name)\n"
-        header += "Version visée    : \(package.newVersion)\n"
-        header += "Version installée : \(actual)"
-        if versionMismatch { header += "   ⚠️ écart" }
+        header += "Package: \(package.name)\n"
+        header += "Target version    : \(package.newVersion)\n"
+        header += "Installed version : \(actual)"
+        if versionMismatch { header += "   ⚠️ mismatch" }
         header += "\n"
         if let hint { header += "\n" + hint + "\n" }
-        header += "\n── Log npm ──────────────────────────────\n"
+        header += "\n== npm log ==============================\n"
 
         return ShellResult(
             stdout: header + "\n" + result.stdout,
@@ -325,7 +325,7 @@ enum MaintenanceEngine {
             } else if let range = rest.range(of: "< ") {
                 newVersion = String(rest[range.upperBound...]).trimmingCharacters(in: .whitespaces)
             } else {
-                newVersion = "—"
+                newVersion = "?"
             }
 
             result.append(UpdatePackage(name: name, manager: manager,

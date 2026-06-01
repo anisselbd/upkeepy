@@ -73,7 +73,7 @@ final class AppState: ObservableObject {
             let s = delta > 1 ? "s" : ""
             Notifications.send(
                 title: "UpKeepy",
-                body: "\(delta) nouvelle\(s) mise\(s) à jour disponible\(s)")
+                body: "\(delta) new update\(s) available")
         }
     }
 
@@ -95,7 +95,7 @@ final class AppState: ObservableObject {
     func checkAll() async {
         guard !isBusy else { return }
         status = .checking
-        busyMessage = "Vérification…"
+        busyMessage = "Checking…"
         defer { busyMessage = nil }
 
         async let brew = MaintenanceEngine.checkHomebrew()
@@ -134,14 +134,14 @@ final class AppState: ObservableObject {
 
         for (index, package) in targets.enumerated() {
             progress = ProgressInfo(done: index, total: total)
-            busyMessage = "Mise à jour de \(package.name)…"
+            busyMessage = "Updating \(package.name)…"
             liveOutput = ""
             let result = await MaintenanceEngine.update(package, onOutput: liveSink())
             if !result.ok { failures.append(package.name) }
         }
 
         progress = ProgressInfo(done: total, total: total)
-        busyMessage = "Nettoyage…"
+        busyMessage = "Cleaning up…"
         liveOutput = ""
         _ = await MaintenanceEngine.cleanup()
 
@@ -151,10 +151,10 @@ final class AppState: ObservableObject {
         let done = total - failures.count
         lastResult = OperationResult(
             success: failures.isEmpty,
-            title: failures.isEmpty ? "\(total) paquet\(total > 1 ? "s" : "") à jour"
-                                    : "\(done)/\(total) mis à jour",
-            detail: failures.isEmpty ? "Tout est à jour ✨"
-                                     : "Échec(s) : \(failures.joined(separator: ", "))",
+            title: failures.isEmpty ? "\(total) package\(total > 1 ? "s" : "") updated"
+                                    : "\(done)/\(total) updated",
+            detail: failures.isEmpty ? "Everything is up to date ✨"
+                                     : "Failed: \(failures.joined(separator: ", "))",
             duration: Date().timeIntervalSince(start))
         await checkAll()
     }
@@ -165,16 +165,16 @@ final class AppState: ObservableObject {
         status = .updating
         progress = nil            // un seul paquet : barre indéterminée
         liveOutput = ""
-        busyMessage = "Mise à jour de \(package.name)…"
+        busyMessage = "Updating \(package.name)…"
         let start = Date()
         let result = await MaintenanceEngine.update(package, onOutput: liveSink())
         busyMessage = nil
         liveOutput = ""
         lastResult = OperationResult(
             success: result.ok,
-            title: result.ok ? "\(package.name) mis à jour" : "Échec : \(package.name)",
+            title: result.ok ? "\(package.name) updated" : "Failed: \(package.name)",
             detail: result.combined.isEmpty
-                ? (result.ok ? "Terminé." : "Erreur inconnue")
+                ? (result.ok ? "Done." : "Unknown error")
                 : result.combined,
             duration: Date().timeIntervalSince(start))
         await checkAll()
@@ -186,16 +186,16 @@ final class AppState: ObservableObject {
         status = .updating
         progress = nil
         liveOutput = ""
-        busyMessage = "Désinstallation de \(package.name)…"
+        busyMessage = "Uninstalling \(package.name)…"
         let start = Date()
         let result = await MaintenanceEngine.uninstall(package, onOutput: liveSink())
         busyMessage = nil
         liveOutput = ""
         lastResult = OperationResult(
             success: result.ok,
-            title: result.ok ? "\(package.name) désinstallé" : "Échec : \(package.name)",
+            title: result.ok ? "\(package.name) uninstalled" : "Failed: \(package.name)",
             detail: result.combined.isEmpty
-                ? (result.ok ? "Paquet retiré." : "Erreur inconnue")
+                ? (result.ok ? "Package removed." : "Unknown error")
                 : result.combined,
             duration: Date().timeIntervalSince(start))
         await checkAll()
@@ -205,14 +205,14 @@ final class AppState: ObservableObject {
         guard !isBusy else { return }
         lastResult = nil
         liveOutput = ""
-        busyMessage = "Réinstallation de \(ghost.token)…"
+        busyMessage = "Reinstalling \(ghost.token)…"
         let start = Date()
         let result = await MaintenanceEngine.reinstallGhost(ghost)
         busyMessage = nil
         lastResult = OperationResult(
             success: result.ok,
-            title: result.ok ? "\(ghost.token) réinstallé" : "Échec : \(ghost.token)",
-            detail: result.combined.isEmpty ? "Terminé." : result.combined,
+            title: result.ok ? "\(ghost.token) reinstalled" : "Failed: \(ghost.token)",
+            detail: result.combined.isEmpty ? "Done." : result.combined,
             duration: Date().timeIntervalSince(start))
         await checkAll()
     }
@@ -220,14 +220,14 @@ final class AppState: ObservableObject {
     func remove(_ ghost: GhostCask) async {
         guard !isBusy else { return }
         lastResult = nil
-        busyMessage = "Suppression de \(ghost.token)…"
+        busyMessage = "Removing \(ghost.token)…"
         let start = Date()
         let result = await MaintenanceEngine.removeGhost(ghost)
         busyMessage = nil
         lastResult = OperationResult(
             success: result.ok,
-            title: result.ok ? "\(ghost.token) supprimé" : "Échec : \(ghost.token)",
-            detail: result.combined.isEmpty ? "Terminé." : result.combined,
+            title: result.ok ? "\(ghost.token) removed" : "Failed: \(ghost.token)",
+            detail: result.combined.isEmpty ? "Done." : result.combined,
             duration: Date().timeIntervalSince(start))
         await checkAll()
     }

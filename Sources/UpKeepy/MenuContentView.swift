@@ -45,21 +45,21 @@ struct MenuContentView: View {
             if state.lastCheck == nil { await state.checkAll() }
         }
         .confirmationDialog(
-            packageToUninstall.map { "Désinstaller \($0.name) ?" } ?? "",
+            packageToUninstall.map { "Uninstall \($0.name)?" } ?? "",
             isPresented: Binding(
                 get: { packageToUninstall != nil },
                 set: { if !$0 { packageToUninstall = nil } }
             ),
             presenting: packageToUninstall
         ) { pkg in
-            Button("Désinstaller", role: .destructive) {
+            Button("Uninstall", role: .destructive) {
                 let target = pkg
                 packageToUninstall = nil
                 Task { await state.uninstall(target) }
             }
-            Button("Annuler", role: .cancel) { packageToUninstall = nil }
+            Button("Cancel", role: .cancel) { packageToUninstall = nil }
         } message: { pkg in
-            Text("Cette action est irréversible. \(pkg.name) sera retiré via \(pkg.manager.displayName).")
+            Text("This can't be undone. \(pkg.name) will be removed via \(pkg.manager.displayName).")
         }
     }
 
@@ -93,13 +93,13 @@ struct MenuContentView: View {
 
     private var statusText: String {
         switch state.status {
-        case .idle:       return "En attente…"
-        case .checking:   return "Vérification en cours…"
-        case .upToDate:   return "Tout est à jour ✨"
-        case .updating:   return "Mise à jour en cours…"
+        case .idle:       return "Idle…"
+        case .checking:   return "Checking…"
+        case .upToDate:   return "Everything is up to date ✨"
+        case .updating:   return "Updating…"
         case .error(let m): return m
         case .updatesAvailable(let n):
-            return "\(n) mise\(n > 1 ? "s" : "") à jour disponible\(n > 1 ? "s" : "")"
+            return "\(n) update\(n > 1 ? "s" : "") available"
         }
     }
 
@@ -112,7 +112,7 @@ struct MenuContentView: View {
                     .foregroundStyle(result.success ? .green : .red)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(result.title).font(.subheadline.weight(.semibold))
-                    Text("Terminé en \(result.durationText)")
+                    Text("Done in \(result.durationText)")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -122,7 +122,7 @@ struct MenuContentView: View {
                     Image(systemName: showResultDetail ? "chevron.up" : "chevron.down")
                 }
                 .buttonStyle(.borderless)
-                .help("Voir le détail")
+                .help("Show details")
                 Button {
                     state.lastResult = nil
                     showResultDetail = false
@@ -130,7 +130,7 @@ struct MenuContentView: View {
                     Image(systemName: "xmark")
                 }
                 .buttonStyle(.borderless)
-                .help("Fermer")
+                .help("Close")
             }
             if showResultDetail {
                 ScrollView {
@@ -151,10 +151,10 @@ struct MenuContentView: View {
 
     private var ghostSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Applications fantômes", systemImage: "questionmark.app.dashed")
+            Label("Ghost apps", systemImage: "questionmark.app.dashed")
                 .font(.subheadline.bold())
                 .foregroundStyle(.orange)
-            Text("Homebrew les croit installées, mais leur app a disparu du disque.")
+            Text("Homebrew thinks they're installed, but their app is gone from disk.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -165,9 +165,9 @@ struct MenuContentView: View {
                         Text(ghost.appName).font(.caption2).foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Button("Réinstaller") { Task { await state.reinstall(ghost) } }
+                    Button("Reinstall") { Task { await state.reinstall(ghost) } }
                         .controlSize(.small)
-                    Button("Supprimer") { Task { await state.remove(ghost) } }
+                    Button("Remove") { Task { await state.remove(ghost) } }
                         .controlSize(.small)
                         .tint(.red)
                 }
@@ -200,7 +200,7 @@ struct MenuContentView: View {
                             Image(systemName: "arrow.down.circle")
                         }
                         .buttonStyle(.borderless)
-                        .help("Mettre à jour \(pkg.name)")
+                        .help("Update \(pkg.name)")
                         .disabled(state.isBusy)
 
                         Button {
@@ -209,7 +209,7 @@ struct MenuContentView: View {
                             Image(systemName: "trash")
                         }
                         .buttonStyle(.borderless)
-                        .help("Désinstaller \(pkg.name)")
+                        .help("Uninstall \(pkg.name)")
                         .foregroundStyle(.secondary)
                         .disabled(state.isBusy)
                     }
@@ -228,7 +228,7 @@ struct MenuContentView: View {
             Button {
                 MaintenanceEngine.openSoftwareUpdateSettings()
             } label: {
-                Label("Ouvrir les Réglages Système", systemImage: "gearshape")
+                Label("Open System Settings", systemImage: "gearshape")
             }
             .controlSize(.small)
             .padding(.top, 2)
@@ -240,10 +240,10 @@ struct MenuContentView: View {
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 40))
                 .foregroundStyle(.green)
-            Text("Ton Mac est à jour")
+            Text("Your Mac is up to date")
                 .font(.headline)
             if let date = state.lastCheck {
-                Text("Vérifié à \(date.formatted(date: .omitted, time: .shortened))")
+                Text("Checked at \(date.formatted(date: .omitted, time: .shortened))")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -258,7 +258,7 @@ struct MenuContentView: View {
             Button {
                 Task { await state.checkAll() }
             } label: {
-                Label("Vérifier", systemImage: "arrow.clockwise")
+                Label("Check", systemImage: "arrow.clockwise")
             }
             .disabled(state.isBusy)
 
@@ -266,7 +266,7 @@ struct MenuContentView: View {
                 Button {
                     Task { await state.updateAll() }
                 } label: {
-                    Label("Tout mettre à jour", systemImage: "arrow.down.circle")
+                    Label("Update all", systemImage: "arrow.down.circle")
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(state.isBusy)
@@ -275,13 +275,13 @@ struct MenuContentView: View {
             Spacer()
 
             Menu {
-                Picker("Vérification automatique", selection: $state.checkIntervalMinutes) {
-                    Text("Toutes les 30 minutes").tag(30)
-                    Text("Toutes les heures").tag(60)
-                    Text("Toutes les 6 heures").tag(360)
-                    Text("Toutes les 24 heures").tag(1440)
+                Picker("Automatic checks", selection: $state.checkIntervalMinutes) {
+                    Text("Every 30 minutes").tag(30)
+                    Text("Every hour").tag(60)
+                    Text("Every 6 hours").tag(360)
+                    Text("Every 24 hours").tag(1440)
                     Divider()
-                    Text("Désactivée").tag(0)
+                    Text("Off").tag(0)
                 }
             } label: {
                 Image(systemName: state.checkIntervalMinutes == 0
@@ -297,19 +297,19 @@ struct MenuContentView: View {
             } label: {
                 Image(systemName: "power")
             }
-            .help("Quitter UpKeepy")
+            .help("Quit UpKeepy")
         }
         .padding(12)
     }
 
     private var scheduleHelp: String {
         switch state.checkIntervalMinutes {
-        case 0:    return "Vérification automatique désactivée"
-        case 30:   return "Vérification toutes les 30 minutes"
-        case 60:   return "Vérification toutes les heures"
-        case 360:  return "Vérification toutes les 6 heures"
-        case 1440: return "Vérification toutes les 24 heures"
-        default:   return "Vérification programmée"
+        case 0:    return "Automatic checks off"
+        case 30:   return "Checking every 30 minutes"
+        case 60:   return "Checking every hour"
+        case 360:  return "Checking every 6 hours"
+        case 1440: return "Checking every 24 hours"
+        default:   return "Scheduled checks"
         }
     }
 

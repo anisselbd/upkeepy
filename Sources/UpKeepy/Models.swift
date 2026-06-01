@@ -59,7 +59,7 @@ struct OperationResult: Identifiable, Sendable {
     let duration: TimeInterval
 
     var durationText: String {
-        duration < 1 ? "moins d'une seconde"
+        duration < 1 ? "less than a second"
                      : String(format: "%.1f s", duration)
     }
 }

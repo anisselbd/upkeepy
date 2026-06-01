@@ -50,7 +50,7 @@ enum Shell {
     /// Exécute une commande via `/bin/zsh -c` et renvoie son résultat.
     ///
     /// Si `onOutput` est fourni, il est appelé en continu (depuis un thread de
-    /// fond) avec chaque morceau de sortie — utile pour afficher la progression
+    /// fond) avec chaque morceau de sortie, utile pour afficher la progression
     /// en direct. La sortie complète reste accumulée pour le `ShellResult` final.
     static func run(_ command: String,
                     onOutput: ((String) -> Void)? = nil) async -> ShellResult {
