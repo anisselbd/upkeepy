@@ -4,7 +4,7 @@ Petite app **barre de menu** macOS qui garde ton Mac à jour, façon `topgrade`
 mais graphique, en un clic, avec une fonctionnalité que `brew` ne sait pas
 faire : **la détection des casks fantômes**.
 
-`macOS 14+` · `Swift / SwiftUI` · Code ouvert (MIT)
+**[upkeepy.fr](https://upkeepy.fr)** · `macOS 14+` · `Swift / SwiftUI` · Code ouvert (MIT)
 
 ![Le popover UpKeepy listant les mises à jour disponibles, regroupées par gestionnaire](docs/hero.png)
 
