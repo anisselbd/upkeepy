@@ -4,6 +4,10 @@ struct MenuContentView: View {
     @EnvironmentObject var state: AppState
     @State private var showResultDetail = false
     @State private var packageToUninstall: UpdatePackage?
+    // Hauteur réelle du contenu de la liste : indispensable car dans une
+    // MenuBarExtra(.window), un ScrollView sans hauteur explicite se replie
+    // à sa taille idéale (quasi nulle) depuis le SDK macOS 26.
+    @State private var listContentHeight: CGFloat = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -33,13 +37,18 @@ struct MenuContentView: View {
                     }
                 }
                 .padding(14)
+                .onGeometryChange(for: CGFloat.self) { proxy in
+                    proxy.size.height
+                } action: { newValue in
+                    listContentHeight = newValue
+                }
             }
+            .frame(height: min(max(listContentHeight, 56), 420))
 
             Divider()
             footer
         }
         .frame(width: 380)
-        .frame(maxHeight: 560)
         .overlay { if state.isBusy { busyOverlay } }
         .task {
             if state.lastCheck == nil { await state.checkAll() }
