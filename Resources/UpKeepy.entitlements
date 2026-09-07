@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Pas d'App Sandbox, volontairement. UpKeepy lance brew, npm et gem, qui
+         écrivent dans /opt/homebrew, /usr/local et le home : un conteneur
+         sandboxé le rendrait impossible. C'est aussi la raison pour laquelle la
+         distribution passe par Developer ID et non par le Mac App Store.
+         Le hardened runtime, lui, reste bien actif (voir la signature dans
+         build.sh). -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+</dict>
+</plist>

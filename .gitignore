@@ -3,3 +3,5 @@
 .DS_Store
 .swiftpm/
 AppIcon.iconset/
+dist/
+*.dmg
