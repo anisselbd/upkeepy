@@ -32,13 +32,27 @@ final class AppState: ObservableObject {
         }
     }
 
+    /// Mode démo : état forgé, aucune commande réelle exécutée.
+    /// Sert à présenter l'app quand la machine n'a rien à montrer.
+    @Published var demoMode: Bool {
+        didSet {
+            UserDefaults.standard.set(demoMode, forKey: Self.demoKey)
+            DemoMode.reset()
+            lastResult = nil
+            Task { await checkAll() }
+        }
+    }
+
     private static let intervalKey = "checkIntervalMinutes"
+    private static let demoKey = "demoMode"
     private var schedulerTask: Task<Void, Never>?
 
     init() {
         // Valeur par défaut : vérif toutes les 6 heures.
         UserDefaults.standard.register(defaults: [Self.intervalKey: 360])
         self.checkIntervalMinutes = UserDefaults.standard.integer(forKey: Self.intervalKey)
+        // Absent des defaults enregistrés : false tant que rien n'a été choisi.
+        self.demoMode = UserDefaults.standard.bool(forKey: Self.demoKey)
 
         Task { @MainActor in
             await Notifications.requestPermissionIfNeeded()
@@ -98,15 +112,24 @@ final class AppState: ObservableObject {
         busyMessage = "Checking…"
         defer { busyMessage = nil }
 
-        async let brew = MaintenanceEngine.checkHomebrew()
-        async let npm = MaintenanceEngine.checkNpm()
-        async let gem = MaintenanceEngine.checkGems()
-        async let sys = MaintenanceEngine.checkSystem()
-        let (brewRes, npmRes, gemRes, sysRes) = await (brew, npm, gem, sys)
+        if demoMode {
+            // Bref délai : sans lui, l'état « Checking » n'est jamais visible,
+            // ce qui rend la démonstration moins fidèle qu'un vrai passage.
+            try? await Task.sleep(for: .milliseconds(450))
+            packages = DemoMode.packages
+            ghosts = DemoMode.ghosts
+            systemUpdates = DemoMode.systemUpdates
+        } else {
+            async let brew = MaintenanceEngine.checkHomebrew()
+            async let npm = MaintenanceEngine.checkNpm()
+            async let gem = MaintenanceEngine.checkGems()
+            async let sys = MaintenanceEngine.checkSystem()
+            let (brewRes, npmRes, gemRes, sysRes) = await (brew, npm, gem, sys)
 
-        packages = brewRes.packages + npmRes + gemRes
-        ghosts = brewRes.ghosts
-        systemUpdates = sysRes
+            packages = brewRes.packages + npmRes + gemRes
+            ghosts = brewRes.ghosts
+            systemUpdates = sysRes
+        }
         lastCheck = Date()
         status = totalUpdates == 0 ? .upToDate : .updatesAvailable(totalUpdates)
     }
@@ -118,6 +141,38 @@ final class AppState: ObservableObject {
                 if let line = AppState.lastLine(chunk) { self?.liveOutput = line }
             }
         }
+    }
+
+    // MARK: - Routage réel / démo
+    //
+    // Toutes les opérations passent par ces quatre méthodes. Le reste de la
+    // classe ignore le mode démo, et le récapitulatif de fin est identique
+    // dans les deux cas puisqu'il part du même ShellResult.
+
+    private func runUpdate(_ package: UpdatePackage) async -> ShellResult {
+        demoMode
+            ? await DemoMode.update(package, onOutput: liveSink())
+            : await MaintenanceEngine.update(package, onOutput: liveSink())
+    }
+
+    private func runUninstall(_ package: UpdatePackage) async -> ShellResult {
+        demoMode
+            ? await DemoMode.uninstall(package, onOutput: liveSink())
+            : await MaintenanceEngine.uninstall(package, onOutput: liveSink())
+    }
+
+    private func runReinstallGhost(_ ghost: GhostCask) async -> ShellResult {
+        demoMode ? await DemoMode.reinstallGhost(ghost)
+                 : await MaintenanceEngine.reinstallGhost(ghost)
+    }
+
+    private func runRemoveGhost(_ ghost: GhostCask) async -> ShellResult {
+        demoMode ? await DemoMode.removeGhost(ghost)
+                 : await MaintenanceEngine.removeGhost(ghost)
+    }
+
+    private func runCleanup() async -> ShellResult {
+        demoMode ? await DemoMode.cleanup() : await MaintenanceEngine.cleanup()
     }
 
     func updateAll() async {
@@ -136,14 +191,14 @@ final class AppState: ObservableObject {
             progress = ProgressInfo(done: index, total: total)
             busyMessage = "Updating \(package.name)…"
             liveOutput = ""
-            let result = await MaintenanceEngine.update(package, onOutput: liveSink())
+            let result = await runUpdate(package)
             if !result.ok { failures.append(package.name) }
         }
 
         progress = ProgressInfo(done: total, total: total)
         busyMessage = "Cleaning up…"
         liveOutput = ""
-        _ = await MaintenanceEngine.cleanup()
+        _ = await runCleanup()
 
         progress = nil
         busyMessage = nil
@@ -167,7 +222,7 @@ final class AppState: ObservableObject {
         liveOutput = ""
         busyMessage = "Updating \(package.name)…"
         let start = Date()
-        let result = await MaintenanceEngine.update(package, onOutput: liveSink())
+        let result = await runUpdate(package)
         busyMessage = nil
         liveOutput = ""
         lastResult = OperationResult(
@@ -188,7 +243,7 @@ final class AppState: ObservableObject {
         liveOutput = ""
         busyMessage = "Uninstalling \(package.name)…"
         let start = Date()
-        let result = await MaintenanceEngine.uninstall(package, onOutput: liveSink())
+        let result = await runUninstall(package)
         busyMessage = nil
         liveOutput = ""
         lastResult = OperationResult(
@@ -207,7 +262,7 @@ final class AppState: ObservableObject {
         liveOutput = ""
         busyMessage = "Reinstalling \(ghost.token)…"
         let start = Date()
-        let result = await MaintenanceEngine.reinstallGhost(ghost)
+        let result = await runReinstallGhost(ghost)
         busyMessage = nil
         lastResult = OperationResult(
             success: result.ok,
@@ -222,7 +277,7 @@ final class AppState: ObservableObject {
         lastResult = nil
         busyMessage = "Removing \(ghost.token)…"
         let start = Date()
-        let result = await MaintenanceEngine.removeGhost(ghost)
+        let result = await runRemoveGhost(ghost)
         busyMessage = nil
         lastResult = OperationResult(
             success: result.ok,

@@ -23,6 +23,10 @@ but graphical and one click away, with a feature `brew` itself can't do:
 - **Smart diagnostics**: when an update fails, the banner shows the likely cause
   and the command to run (e.g. missing `distutils` on Python 3.13 →
   `npm install -g node-gyp@latest`).
+- **Demo mode**: a toggle in the ⏰ footer menu that shows a simulated set of
+  pending updates and ghost casks, for screenshots and demos, independently of
+  what the machine actually has. No command is run while it is on, and a DEMO
+  badge stays visible in the header.
 - **Periodic background checks** (30 min / 1 h / 6 h / 24 h, adjustable from the
   ⏰ menu in the footer) + a **system notification** when new updates appear
   between two checks.

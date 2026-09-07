@@ -6,10 +6,14 @@ et détection interactive des casks fantômes.
 
 ## Idées V2, par ordre d'impact perçu
 
-### 🥇 Mode démo (état simulé)
-Toggle dans les préférences qui forge une fausse liste de paquets en attente,
+### ✅ Mode démo (état simulé) *(livré)*
+Bascule dans le menu ⏰ du pied qui forge une liste de paquets en attente,
 indépendamment de l'état réel de la machine. Utile pour présenter le produit
 (captures, screencasts, démos clients) sans dépendre de l'instant T.
+
+Aucune commande n'est exécutée tant qu'il est actif, ce qui le rend sûr sur une
+machine inconnue. Un badge « DEMO » reste visible dans l'en-tête pour qu'un état
+forgé ne puisse pas être pris pour l'état réel de la machine.
 
 ### ✅ Désinstall par paquet *(livré)*
 Bouton 🗑️ à côté du ⬇️ sur chaque ligne, avec dialogue de confirmation

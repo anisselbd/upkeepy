@@ -80,8 +80,11 @@ struct MenuContentView: View {
                 .font(.title2)
                 .foregroundStyle(headerColor)
             VStack(alignment: .leading, spacing: 2) {
-                Text("UpKeepy")
-                    .font(.headline)
+                HStack(spacing: 6) {
+                    Text("UpKeepy")
+                        .font(.headline)
+                    if state.demoMode { demoBadge }
+                }
                 Text(statusText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -89,6 +92,19 @@ struct MenuContentView: View {
             Spacer()
         }
         .padding(14)
+    }
+
+    /// Repère permanent du mode démo. Il doit rester lisible sur une capture :
+    /// c'est ce qui évite de faire passer un état forgé pour un état réel.
+    private var demoBadge: some View {
+        Text("DEMO")
+            .font(.system(size: 9, weight: .semibold))
+            .tracking(0.6)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(Color.orange.opacity(0.18), in: RoundedRectangle(cornerRadius: 4))
+            .foregroundStyle(.orange)
+            .accessibilityLabel("Demo mode active, the data shown is simulated")
     }
 
     private var headerColor: Color {
@@ -292,6 +308,11 @@ struct MenuContentView: View {
                     Divider()
                     Text("Off").tag(0)
                 }
+
+                Divider()
+
+                Toggle("Demo mode", isOn: $state.demoMode)
+                    .help("Show a simulated state for screenshots and demos. No command is run.")
             } label: {
                 Image(systemName: state.checkIntervalMinutes == 0
                       ? "clock.badge.xmark"
