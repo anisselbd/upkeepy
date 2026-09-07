@@ -8,6 +8,9 @@ struct MenuContentView: View {
     // MenuBarExtra(.window), un ScrollView sans hauteur explicite se replie
     // à sa taille idéale (quasi nulle) depuis le SDK macOS 26.
     @State private var listContentHeight: CGFloat = 0
+    // Même contrainte pour le log du récapitulatif : un maxHeight seul le
+    // laisserait se replier à quelques pixels, donnant un dépliement vide.
+    @State private var detailContentHeight: CGFloat = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -164,8 +167,13 @@ struct MenuContentView: View {
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .textSelection(.enabled)
+                        .onGeometryChange(for: CGFloat.self) { proxy in
+                            proxy.size.height
+                        } action: { newValue in
+                            detailContentHeight = newValue
+                        }
                 }
-                .frame(maxHeight: 220)
+                .frame(height: min(max(detailContentHeight, 40), 220))
             }
         }
         .padding(12)

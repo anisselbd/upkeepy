@@ -1,8 +1,4 @@
-First public release. UpKeepy is a macOS menu bar app that keeps Homebrew, npm,
-RubyGems and macOS itself up to date, without opening a terminal.
-
-**Signed and notarized by Apple**, so it opens without a Gatekeeper warning.
-2 MB, no dependencies, no telemetry, no account.
+Adds a demo mode, and fixes an expandable log that would not expand.
 
 ## Install
 
@@ -10,28 +6,32 @@ RubyGems and macOS itself up to date, without opening a terminal.
 brew install --cask anisselbd/tap/upkeepy
 ```
 
-Or download the `.dmg` below and drag UpKeepy to Applications.
+Already installed? `brew upgrade --cask upkeepy`. Or download the `.dmg` below
+and drag UpKeepy to Applications. Requires macOS 14 (Sonoma) or later.
 
-Requires macOS 14 (Sonoma) or later.
+## Demo mode
 
-## What it does
+A toggle in the ⏰ footer menu shows a simulated set of pending updates and
+ghost casks, independently of what your machine actually has. It exists because
+a well-kept Mac has nothing to show, and above all no ghost casks, which makes
+the app impossible to demo or screenshot honestly.
 
-- **One popover for four package managers.** Homebrew formulae and casks, global
-  npm packages, gems, and macOS system updates, in a single list.
-- **Ghost cask detection.** Finds apps Homebrew still believes are installed but
-  that were dragged to the trash by hand, and offers to reinstall them or drop
-  the dangling reference. `brew` itself cannot do this.
-- **Fake npm successes, exposed.** npm exits 0 even when a native module failed
-  to compile. UpKeepy runs a post-install check and tells you when an update
-  only *looks* successful.
-- **Update one package or everything**, with live shell output rather than a
-  fake progress bar, and an honest summary at the end: what worked, what failed,
-  how long it took, with an expandable log you can copy.
-- **Background checks** every 30 min to 24 h, with a notification when something
-  new shows up.
+- Eight packages across all four managers, two ghost casks, one macOS update.
+- Simulated operations replay real output line by line, so the progress bar,
+  the live output and the end summary behave exactly as they do for real.
+- One npm package fails on purpose, reproducing the fake-success diagnosis:
+  target version, installed version, mismatch, likely cause, and the command
+  to fix it.
+- **No command is run while demo mode is on.** It never touches your packages,
+  which makes it safe on a machine you do not own.
+- A DEMO badge stays visible in the header, so a simulated state can never be
+  mistaken for your machine's real one.
 
-## Notes
+## Fix
 
-The app is deliberately not sandboxed: driving `brew`, `npm` and `gem` means
-writing outside a sandbox container. That is also why it ships outside the Mac
-App Store. The source is MIT licensed and readable in full.
+The expandable detail view of the end-of-operation summary did not open. The
+chevron moved a few pixels and showed nothing, which made the failure log
+unreadable, exactly when it matters most. Inside a `MenuBarExtra(.window)` on
+the macOS 26 SDK, a `ScrollView` given only a `maxHeight` collapses to its
+ideal size; it now gets an explicit measured height, like the main list already
+did.
