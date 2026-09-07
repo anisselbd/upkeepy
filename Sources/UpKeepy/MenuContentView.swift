@@ -173,7 +173,7 @@ struct MenuContentView: View {
                             detailContentHeight = newValue
                         }
                 }
-                .frame(height: min(max(detailContentHeight, 40), 220))
+                .frame(height: min(max(detailContentHeight, 18), 220))
             }
         }
         .padding(12)

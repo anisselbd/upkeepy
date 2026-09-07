@@ -1,4 +1,4 @@
-Adds a demo mode, and fixes an expandable log that would not expand.
+Makes the end-of-operation summary actually show why an update failed.
 
 ## Install
 
@@ -6,32 +6,25 @@ Adds a demo mode, and fixes an expandable log that would not expand.
 brew install --cask anisselbd/tap/upkeepy
 ```
 
-Already installed? `brew upgrade --cask upkeepy`. Or download the `.dmg` below
-and drag UpKeepy to Applications. Requires macOS 14 (Sonoma) or later.
-
-## Demo mode
-
-A toggle in the ⏰ footer menu shows a simulated set of pending updates and
-ghost casks, independently of what your machine actually has. It exists because
-a well-kept Mac has nothing to show, and above all no ghost casks, which makes
-the app impossible to demo or screenshot honestly.
-
-- Eight packages across all four managers, two ghost casks, one macOS update.
-- Simulated operations replay real output line by line, so the progress bar,
-  the live output and the end summary behave exactly as they do for real.
-- One npm package fails on purpose, reproducing the fake-success diagnosis:
-  target version, installed version, mismatch, likely cause, and the command
-  to fix it.
-- **No command is run while demo mode is on.** It never touches your packages,
-  which makes it safe on a machine you do not own.
-- A DEMO badge stays visible in the header, so a simulated state can never be
-  mistaken for your machine's real one.
+Already installed? `brew upgrade --cask upkeepy`. Requires macOS 14 or later.
 
 ## Fix
 
-The expandable detail view of the end-of-operation summary did not open. The
-chevron moved a few pixels and showed nothing, which made the failure log
-unreadable, exactly when it matters most. Inside a `MenuBarExtra(.window)` on
-the macOS 26 SDK, a `ScrollView` given only a `maxHeight` collapses to its
-ideal size; it now gets an explicit measured height, like the main list already
-did.
+Updating everything at once kept only the **names** of the packages that failed,
+so the summary read `Failed: node-sass` and nothing more. The diagnosis was
+thrown away: target version against installed version, the likely cause, and the
+command to run. It was still available when updating a single package, but
+"Update all" is the path most people take, and it is exactly where a failure
+needs explaining.
+
+The summary now keeps the log of every failed package, each under its own
+heading. Two things the README promises hold on that path again: a detail view
+you can expand and copy, and a banner that names the likely cause.
+
+Also trims the blank space left under a one-line summary.
+
+## Previously, in 1.1.0
+
+A demo mode (⏰ footer menu) that shows a simulated set of pending updates and
+ghost casks, for screenshots and demos, without running any command. Plus a fix
+for the expandable log that would not expand at all.

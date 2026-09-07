@@ -186,13 +186,22 @@ final class AppState: ObservableObject {
         let total = targets.count
         let start = Date()
         var failures: [String] = []
+        // Les journaux des échecs sont conservés : sans eux, le récapitulatif
+        // se réduit aux noms des paquets, et le diagnostic (version visée
+        // contre version installée, cause probable, commande à lancer) serait
+        // perdu précisément sur le chemin le plus emprunté.
+        var failureLogs: [String] = []
 
         for (index, package) in targets.enumerated() {
             progress = ProgressInfo(done: index, total: total)
             busyMessage = "Updating \(package.name)…"
             liveOutput = ""
             let result = await runUpdate(package)
-            if !result.ok { failures.append(package.name) }
+            if !result.ok {
+                failures.append(package.name)
+                let log = result.combined.isEmpty ? "Unknown error" : result.combined
+                failureLogs.append("── \(package.name) " + String(repeating: "─", count: max(1, 30 - package.name.count)) + "\n" + log)
+            }
         }
 
         progress = ProgressInfo(done: total, total: total)
@@ -208,8 +217,10 @@ final class AppState: ObservableObject {
             success: failures.isEmpty,
             title: failures.isEmpty ? "\(total) package\(total > 1 ? "s" : "") updated"
                                     : "\(done)/\(total) updated",
-            detail: failures.isEmpty ? "Everything is up to date ✨"
-                                     : "Failed: \(failures.joined(separator: ", "))",
+            detail: failures.isEmpty
+                ? "Everything is up to date ✨"
+                : "Failed: \(failures.joined(separator: ", "))\n\n"
+                  + failureLogs.joined(separator: "\n\n"),
             duration: Date().timeIntervalSince(start))
         await checkAll()
     }
