@@ -122,8 +122,7 @@ cask "upkeepy" do
   version "${VERSION}"
   sha256 "${SHA}"
 
-  url "https://github.com/anisselbd/upkeepy/releases/download/v#{version}/UpKeepy-#{version}.dmg",
-      verified: "github.com/anisselbd/upkeepy/"
+  url "https://github.com/anisselbd/upkeepy/releases/download/v#{version}/UpKeepy-#{version}.dmg"
   name "UpKeepy"
   desc "Menu bar app that keeps Homebrew, npm, RubyGems and macOS up to date"
   homepage "https://upkeepy.fr/"
@@ -133,7 +132,7 @@ cask "upkeepy" do
     strategy :github_latest
   end
 
-  depends_on macos: ">= :sonoma"
+  depends_on macos: :sonoma
 
   app "UpKeepy.app"
 

@@ -50,6 +50,23 @@ The menu bar icon reflects the live status:
 
 ## Installation
 
+Requires macOS 14 (Sonoma) or later. The build is signed with a Developer ID and
+notarized by Apple: it opens without a Gatekeeper warning. 2 MB, no dependencies,
+no telemetry, no account.
+
+### Homebrew
+
+```bash
+brew install --cask anisselbd/tap/upkeepy
+```
+
+### Direct download
+
+Grab the `.dmg` from the [latest release](https://github.com/anisselbd/upkeepy/releases/latest),
+then drag UpKeepy to Applications.
+
+### From source
+
 No full Xcode needed, just the Command Line Tools.
 
 ```bash
@@ -61,9 +78,6 @@ open UpKeepy.app  # launches the app (icon in the menu bar)
 
 To launch it at every startup: System Settings → General → Login Items → add
 `UpKeepy.app`.
-
-> A ready-to-use packaged build (Developer ID signed and notarized) is coming.
-> A waitlist is open at **upkeepy.fr**.
 
 ## Architecture
 
